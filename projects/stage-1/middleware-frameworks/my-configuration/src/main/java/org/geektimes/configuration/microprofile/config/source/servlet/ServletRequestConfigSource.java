@@ -19,12 +19,64 @@ package org.geektimes.configuration.microprofile.config.source.servlet;
 import org.eclipse.microprofile.config.spi.ConfigSource;
 
 import javax.servlet.ServletRequest;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * {@link ServletRequest} {@link ConfigSource}
  *
- * @author <a href="mailto:mercyblitz@gmail.com">Mercy</a>
+ * @author zhouyin
  * @since 1.0.0
  */
-public class ServletRequestConfigSource {
+public class ServletRequestConfigSource implements ConfigSource {
+
+    protected ServletRequest request;
+
+    private final int ordinal;
+
+    private final Map<String, String> configData;
+
+    public ServletRequestConfigSource(ServletRequest request) {
+        this.request = request;
+        this.ordinal = ConfigSource.super.getOrdinal();
+        this.configData = new HashMap<>();
+    }
+
+    public ServletRequestConfigSource(ServletRequest request, int ordinal) {
+        this.request = request;
+        this.ordinal = ordinal;
+        this.configData = new HashMap<>();
+    }
+
+    @Override
+    public Map<String, String> getProperties() {
+        Enumeration<String> params = request.getParameterNames();
+        while(params.hasMoreElements()) {
+            String kyeStr = params.nextElement();
+            configData.put(kyeStr, request.getParameter(kyeStr));
+        }
+        return this.configData;
+    }
+
+    @Override
+    public Set<String> getPropertyNames() {
+        return getProperties().keySet();
+    }
+
+    @Override
+    public int getOrdinal() {
+        return this.ordinal;
+    }
+
+    @Override
+    public String getValue(String propertyName) {
+        return getProperties().get(propertyName);
+    }
+
+    @Override
+    public String getName() {
+        return this.request.getLocalName();
+    }
 }
